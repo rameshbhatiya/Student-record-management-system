@@ -5,4 +5,4 @@ git clone https://github.com/rameshbhatiya/Student-record-management-system.git
 cd Student-record-management-system
 
 # Run the application
-python main.py
+python student_report.py
