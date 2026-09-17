@@ -1,8 +1,10 @@
-# Clone the repository
-git clone https://github.com/rameshbhatiya/Student-record-management-system.git
+<div align="center">
 
-# Navigate into the folder
-cd Student-record-management-system
+  <h1>🚧 <font color="#FF8C00"><u>UNDER CONSTRUCTION</u></font> 🚧</h1>
 
-# Run the application
-python student_report.py
+  <p>
+    <code>> System message: This repository is currently under active development...</code><br>
+    <code>> Please check back later for updates! 🛠️</code>
+  </p>
+
+</div>
