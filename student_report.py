@@ -17,7 +17,6 @@ def check_hashes(password, hashed_text):
     return make_hashes(password) == hashed_text
 
 def is_strong_password(password):
-    # Minimum 6 characters, at least one letter and one number
     if len(password) < 6:
         return False, "Password must be at least 6 characters long."
     if not re.search(r"[A-Za-z]", password) or not re.search(r"[0-9]", password):
@@ -25,13 +24,12 @@ def is_strong_password(password):
     return True, ""
 
 # ---------------------------------------------------------
-# DATABASE INITIALIZATION (SAFE PRESERVATION)
+# DATABASE INITIALIZATION
 # ---------------------------------------------------------
 def init_db():
     conn = sqlite3.connect("multi_school_system.db", check_same_thread=False)
     cursor = conn.cursor()
     
-    # Schools Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS schools (
             school_id TEXT PRIMARY KEY,
@@ -43,7 +41,6 @@ def init_db():
         )
     """)
 
-    # Users Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id TEXT PRIMARY KEY,
@@ -54,7 +51,6 @@ def init_db():
         )
     """)
     
-    # Students Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS students (
             student_id TEXT PRIMARY KEY,
@@ -65,7 +61,6 @@ def init_db():
         )
     """)
 
-    # Teachers & Staff Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS teachers (
             teacher_id TEXT PRIMARY KEY,
@@ -74,14 +69,12 @@ def init_db():
         )
     """)
 
-    # Marks Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS marks (
             student_id TEXT, school_id TEXT, exam_type TEXT, subject TEXT, marks_obtained REAL, max_marks REAL
         )
     """)
 
-    # Universal Attendance Table (For Students, Teachers, Admin, Director)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS attendance (
             person_id TEXT, school_id TEXT, role TEXT, date TEXT, status TEXT
@@ -124,7 +117,6 @@ if not st.session_state['logged_in']:
         schools_df = pd.read_sql_query("SELECT school_id, school_name, address, principal_name FROM schools", conn)
         if not schools_df.empty:
             st.dataframe(schools_df, use_container_width=True)
-            
             st.markdown("---")
             selected_s = st.selectbox("View School Info", schools_df['school_id'].tolist())
             if selected_s:
@@ -149,7 +141,6 @@ if not st.session_state['logged_in']:
                 s_staff = st.number_input("Approximate Staff Count", min_value=1, step=1)
                 s_password = st.text_input("Set Principal/Director Password* (Min 6 chars, Letters+Numbers)", type="password")
 
-            # Unique ID Validation Check
             if s_code:
                 cursor.execute("SELECT school_id FROM schools WHERE school_id = ?", (s_code,))
                 if cursor.fetchone():
@@ -158,7 +149,6 @@ if not st.session_state['logged_in']:
             submit_school = st.form_submit_button("Register School")
 
             if submit_school:
-                # Password Validation Check
                 is_valid_pass, pass_msg = is_strong_password(s_password)
                 
                 cursor.execute("SELECT school_id FROM schools WHERE school_id = ?", (s_code,))
@@ -416,4 +406,6 @@ else:
 
         with tab3:
             st.subheader("Attendance History")
-            att = pd.read_sql_query(f"SELECT date, status FROM attendance WH
+            att = pd.read_sql_query(f"SELECT date, status FROM attendance WHERE person_id = '{u_id}'", conn)
+            st.dataframe(att, use_container_width=True)
+                        
