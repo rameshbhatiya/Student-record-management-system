@@ -1,10 +1,2 @@
-# Data handling & calculations
-pandas>=2.0.0
-
-# Terminal table formatting
-tabulate>=0.9.0
-prettytable>=3.8.0
-
-# Colored terminal text (optional UI improvement)
-colorama>=0.4.6
-rich>=13.0.0
+streamlit
+pandas
