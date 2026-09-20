@@ -2,23 +2,30 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import hashlib
+import re
 from datetime import datetime
 
 st.set_page_config(page_title="Multi-School Management System", page_icon="🏫", layout="wide")
 
 # ---------------------------------------------------------
-# SECURITY FUNCTION (PASSWORD HASHING)
+# SECURITY & VALIDATION FUNCTIONS
 # ---------------------------------------------------------
 def make_hashes(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
 def check_hashes(password, hashed_text):
-    if make_hashes(password) == hashed_text:
-        return True
-    return False
+    return make_hashes(password) == hashed_text
+
+def is_strong_password(password):
+    # Minimum 6 characters, at least one letter and one number
+    if len(password) < 6:
+        return False, "Password must be at least 6 characters long."
+    if not re.search(r"[A-Za-z]", password) or not re.search(r"[0-9]", password):
+        return False, "Password must contain both letters and numbers."
+    return True, ""
 
 # ---------------------------------------------------------
-# DATABASE INITIALIZATION (DATA SAFE SETUP)
+# DATABASE INITIALIZATION (SAFE PRESERVATION)
 # ---------------------------------------------------------
 def init_db():
     conn = sqlite3.connect("multi_school_system.db", check_same_thread=False)
@@ -52,17 +59,18 @@ def init_db():
         CREATE TABLE IF NOT EXISTS students (
             student_id TEXT PRIMARY KEY,
             school_id TEXT,
+            sr_no TEXT,
             name TEXT, student_class TEXT, roll_no TEXT, dob TEXT,
             address TEXT, phone TEXT, total_fee REAL DEFAULT 0, paid_fee REAL DEFAULT 0
         )
     """)
 
-    # Teachers Table
+    # Teachers & Staff Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS teachers (
             teacher_id TEXT PRIMARY KEY,
             school_id TEXT,
-            name TEXT, class_teacher TEXT, dob TEXT, phone TEXT
+            name TEXT, role_type TEXT, class_teacher TEXT, dob TEXT, phone TEXT
         )
     """)
 
@@ -73,10 +81,10 @@ def init_db():
         )
     """)
 
-    # Attendance Table
+    # Universal Attendance Table (For Students, Teachers, Admin, Director)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS attendance (
-            student_id TEXT, school_id TEXT, date TEXT, status TEXT
+            person_id TEXT, school_id TEXT, role TEXT, date TEXT, status TEXT
         )
     """)
 
@@ -100,12 +108,35 @@ if 'logged_in' not in st.session_state:
 # LANDING & LOGIN PAGE
 # ---------------------------------------------------------
 if not st.session_state['logged_in']:
-    st.title("🏫 Multi-School Portal & Management System")
+    st.title("🏫 School Portal & Management Platform")
     
-    page = st.sidebar.radio("Navigation", ["🔐 Login (School/Staff/Student)", "📝 Register New School"])
+    page = st.sidebar.radio("Navigation", [
+        "👀 Guest Visitor Mode", 
+        "🔐 Login (Portal)", 
+        "📝 Register New School"
+    ])
 
-    # --- NEW SCHOOL REGISTRATION ---
-    if page == "📝 Register New School":
+    # 1. GUEST VISITOR MODE
+    if page == "👀 Guest Visitor Mode":
+        st.subheader("🌐 Welcome Guest Visitor!")
+        st.info("You are exploring in Guest Mode. Here is the public directory of registered schools.")
+        
+        schools_df = pd.read_sql_query("SELECT school_id, school_name, address, principal_name FROM schools", conn)
+        if not schools_df.empty:
+            st.dataframe(schools_df, use_container_width=True)
+            
+            st.markdown("---")
+            selected_s = st.selectbox("View School Info", schools_df['school_id'].tolist())
+            if selected_s:
+                s_detail = pd.read_sql_query(f"SELECT * FROM schools WHERE school_id='{selected_s}'", conn)
+                st.write(f"### 🏫 {s_detail.iloc[0]['school_name']}")
+                st.write(f"📍 **Address:** {s_detail.iloc[0]['address']}")
+                st.write(f"👨‍🏫 **Principal:** {s_detail.iloc[0]['principal_name']}")
+        else:
+            st.warning("No registered schools found yet.")
+
+    # 2. REGISTER NEW SCHOOL
+    elif page == "📝 Register New School":
         st.subheader("📝 Register Your School On Platform")
         with st.form("register_school_form"):
             col1, col2 = st.columns(2)
@@ -116,45 +147,52 @@ if not st.session_state['logged_in']:
             with col2:
                 p_name = st.text_input("Principal / Director Name*")
                 s_staff = st.number_input("Approximate Staff Count", min_value=1, step=1)
-                s_password = st.text_input("Set Principal/Director Account Password*", type="password")
+                s_password = st.text_input("Set Principal/Director Password* (Min 6 chars, Letters+Numbers)", type="password")
+
+            # Unique ID Validation Check
+            if s_code:
+                cursor.execute("SELECT school_id FROM schools WHERE school_id = ?", (s_code,))
+                if cursor.fetchone():
+                    st.error(f"⚠️ School ID '{s_code}' is ALREADY TAKEN! Please choose another code.")
 
             submit_school = st.form_submit_button("Register School")
 
             if submit_school:
-                if not s_code or not s_name or not p_name or not s_password:
-                    st.error("Please fill all compulsory fields marked with *")
+                # Password Validation Check
+                is_valid_pass, pass_msg = is_strong_password(s_password)
+                
+                cursor.execute("SELECT school_id FROM schools WHERE school_id = ?", (s_code,))
+                if cursor.fetchone():
+                    st.error("❌ Cannot register. School ID is already taken!")
+                elif not is_valid_pass:
+                    st.error(f"❌ Weak Password: {pass_msg}")
+                elif not s_code or not s_name or not p_name:
+                    st.error("Please fill all required fields!")
                 else:
-                    try:
-                        hashed_pass = make_hashes(s_password)
-                        # Register School Info
-                        cursor.execute("INSERT INTO schools VALUES (?, ?, ?, ?, ?, ?)", 
-                                       (s_code, s_name, s_address, p_name, s_staff, hashed_pass))
-                        # Auto-create Director Account
-                        director_id = f"{s_code}_director"
-                        cursor.execute("INSERT INTO users VALUES (?, ?, ?, 'Director', ?)", 
-                                       (director_id, s_code, hashed_pass, p_name))
-                        conn.commit()
-                        st.success(f"✅ School '{s_name}' registered successfully! Your Director Login ID is: `{director_id}`")
-                    except sqlite3.IntegrityError:
-                        st.error(f"❌ School Code '{s_code}' is already registered. Please choose a unique School ID.")
+                    hashed_pass = make_hashes(s_password)
+                    cursor.execute("INSERT INTO schools VALUES (?, ?, ?, ?, ?, ?)", 
+                                   (s_code, s_name, s_address, p_name, s_staff, hashed_pass))
+                    
+                    director_id = f"{s_code}_director"
+                    cursor.execute("INSERT INTO users VALUES (?, ?, ?, 'Director', ?)", 
+                                   (director_id, s_code, hashed_pass, p_name))
+                    conn.commit()
+                    st.success(f"✅ School '{s_name}' registered successfully! Your Login ID: `{director_id}`")
 
-    # --- LOGIN PAGE ---
-    elif page == "🔐 Login (School/Staff/Student)":
-        st.subheader("🔑 Sign In To Your Portal")
-        login_type = st.radio("Select Login Mode", ["Principal / Admin / Teacher", "🎓 Direct Student ID Login"])
+    # 3. LOGIN PAGE
+    elif page == "🔐 Login (Portal)":
+        st.subheader("🔑 Sign In To Your Account")
+        login_type = st.radio("Select Login Mode", ["School Staff / Admin / Director", "🎓 Student Direct Login"])
 
-        if login_type == "Principal / Admin / Teacher":
+        if login_type == "School Staff / Admin / Director":
             with st.form("staff_login"):
-                school_id = st.text_input("Enter School ID / Code")
-                user_id = st.text_input("User ID (Director/Admin/Teacher ID)")
+                school_id = st.text_input("School ID / Code")
+                user_id = st.text_input("User ID")
                 password = st.text_input("Password", type="password")
                 btn = st.form_submit_button("Login")
 
                 if btn:
-                    cursor.execute("""
-                        SELECT user_id, school_id, password, role, name FROM users 
-                        WHERE user_id = ? AND school_id = ?
-                    """, (user_id, school_id))
+                    cursor.execute("SELECT user_id, school_id, password, role, name FROM users WHERE user_id = ? AND school_id = ?", (user_id, school_id))
                     user = cursor.fetchone()
                     if user and check_hashes(password, user[2]):
                         st.session_state['logged_in'] = True
@@ -162,22 +200,19 @@ if not st.session_state['logged_in']:
                         st.session_state['school_id'] = user[1]
                         st.session_state['role'] = user[3]
                         st.session_state['name'] = user[4]
-                        st.success(f"Welcome {user[4]}!")
+                        st.success(f"Welcome {user[4]} ({user[3]})!")
                         st.rerun()
                     else:
-                        st.error("Invalid School ID, User ID, or Password!")
+                        st.error("Invalid Credentials!")
 
-        elif login_type == "🎓 Direct Student ID Login":
+        elif login_type == "🎓 Student Direct Login":
             with st.form("student_login"):
-                student_id = st.text_input("Enter Student ID")
-                password = st.text_input("Password", type="password")
+                student_id = st.text_input("Student ID (First Name + SR Number)")
+                password = st.text_input("Password (DOB e.g. YYYY-MM-DD)", type="password")
                 btn = st.form_submit_button("Student Login")
 
                 if btn:
-                    cursor.execute("""
-                        SELECT user_id, school_id, password, role, name FROM users 
-                        WHERE user_id = ? AND role = 'Student'
-                    """, (student_id,))
+                    cursor.execute("SELECT user_id, school_id, password, role, name FROM users WHERE user_id = ? AND role = 'Student'", (student_id,))
                     user = cursor.fetchone()
                     if user and check_hashes(password, user[2]):
                         st.session_state['logged_in'] = True
@@ -188,11 +223,11 @@ if not st.session_state['logged_in']:
                         st.success(f"Welcome {user[4]}!")
                         st.rerun()
                     else:
-                        st.error("Invalid Student ID or Password!")
+                        st.error("Invalid Student ID or DOB Password!")
 
 else:
     # ---------------------------------------------------------
-    # LOGGED IN DASHBOARDS
+    # DASHBOARDS
     # ---------------------------------------------------------
     sid = st.session_state['school_id']
     role = st.session_state['role']
@@ -210,115 +245,145 @@ else:
         st.session_state['logged_in'] = False
         st.rerun()
 
-    # 1. DIRECTOR / PRINCIPAL PANEL
-    if role == "Director":
-        st.title(f"👑 Principal / Director Dashboard ({school_name_display})")
-        menu = ["School Details & Profile", "Create Admin Accounts", "Manage System Users", "Full Overview"]
+    # 1. DIRECTOR / PRINCIPAL DASHBOARD
+    if role in ["Director", "Principal"]:
+        st.title(f"👑 {role} Dashboard")
+        menu = ["Manage Management Roles (Admin/Vice Principal)", "School Overview & Data Update", "Universal Attendance Tracker"]
         choice = st.sidebar.radio("Navigation", menu)
 
-        if choice == "School Details & Profile":
-            st.subheader("🏫 Registered School Profile")
-            s_data = pd.read_sql_query(f"SELECT school_id, school_name, address, principal_name, staff_count FROM schools WHERE school_id = '{sid}'", conn)
-            st.dataframe(s_data, use_container_width=True)
+        if choice == "Manage Management Roles (Admin/Vice Principal)":
+            st.subheader("➕ Create Admin / Vice Principal Accounts")
+            with st.form("create_admin_form"):
+                new_role = st.selectbox("Assign Role", ["Admin", "Vice Principal"])
+                a_id = st.text_input("User ID")
+                a_name = st.text_input("Full Name")
+                a_pass = st.text_input("Assign Password (Strong)", type="password")
+                
+                if st.form_submit_button("Create User Account"):
+                    is_valid, msg = is_strong_password(a_pass)
+                    if not is_valid:
+                        st.error(msg)
+                    else:
+                        try:
+                            hashed = make_hashes(a_pass)
+                            cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?)", (a_id, sid, hashed, new_role, a_name))
+                            conn.commit()
+                            st.success(f"{new_role} Account Created Successfully!")
+                        except sqlite3.IntegrityError:
+                            st.error("User ID already exists!")
 
-        elif choice == "Create Admin Accounts":
-            st.subheader("➕ Create Admin Account for School")
-            with st.form("create_admin"):
-                admin_id = st.text_input("Admin ID")
-                admin_name = st.text_input("Admin Name")
-                admin_pass = st.text_input("Password", type="password")
-                if st.form_submit_button("Create Admin"):
-                    try:
-                        hashed_pass = make_hashes(admin_pass)
-                        cursor.execute("INSERT INTO users VALUES (?, ?, ?, 'Admin', ?)", 
-                                       (admin_id, sid, hashed_pass, admin_name))
-                        conn.commit()
-                        st.success("Admin Created Successfully!")
-                    except sqlite3.IntegrityError:
-                        st.error("Admin ID already exists!")
+        elif choice == "School Overview & Data Update":
+            st.subheader("📊 System Directory & Records")
+            st.dataframe(pd.read_sql_query(f"SELECT user_id, role, name FROM users WHERE school_id = '{sid}'", conn), use_container_width=True)
 
-        elif choice == "Manage System Users":
-            st.subheader("👥 System Accounts")
-            users_df = pd.read_sql_query(f"SELECT user_id, role, name FROM users WHERE school_id = '{sid}'", conn)
-            st.dataframe(users_df, use_container_width=True)
+        elif choice == "Universal Attendance Tracker":
+            st.subheader("📅 Attendance History (All Roles)")
+            att_df = pd.read_sql_query(f"SELECT * FROM attendance WHERE school_id='{sid}'", conn)
+            st.dataframe(att_df, use_container_width=True)
 
-        elif choice == "Full Overview":
-            st.subheader("📊 School Summary")
-            col1, col2 = st.columns(2)
-            col1.metric("Total Registered Students", pd.read_sql_query(f"SELECT COUNT(*) FROM students WHERE school_id = '{sid}'", conn).iloc[0,0])
-            col2.metric("Total Teachers", pd.read_sql_query(f"SELECT COUNT(*) FROM teachers WHERE school_id = '{sid}'", conn).iloc[0,0])
-
-    # 2. SCHOOL ADMIN PANEL
-    elif role == "Admin":
-        st.title("🛠️ School Admin Dashboard")
-        menu = ["Add Student", "Add Teacher", "View All Records"]
+    # 2. ADMIN / VICE PRINCIPAL DASHBOARD
+    elif role in ["Admin", "Vice Principal"]:
+        st.title(f"🛠️ {role} Dashboard")
+        menu = ["Add Student (Auto Credentials)", "Add Teacher / Staff", "Update School Data", "Mark Daily Attendance"]
         choice = st.sidebar.radio("Navigation", menu)
 
-        if choice == "Add Student":
+        if choice == "Add Student (Auto Credentials)":
             st.subheader("➕ Add New Student")
-            with st.form("add_student"):
-                s_id = st.text_input("Student ID (Login ID)")
-                s_pass = st.text_input("Assign Password")
-                s_name = st.text_input("Student Name")
+            st.info("Note: Student UID = First Name + SR Number | Password = Date of Birth (YYYY-MM-DD)")
+            with st.form("add_student_form"):
+                first_name = st.text_input("First Name*").strip()
+                last_name = st.text_input("Last Name").strip()
+                sr_no = st.text_input("SR Number*").strip()
                 s_class = st.text_input("Class")
                 s_roll = st.text_input("Roll Number")
+                dob = st.date_input("Date of Birth (Password)")
                 s_phone = st.text_input("Phone Number")
                 total_fee = st.number_input("Total Fee Amount", min_value=0.0)
-                if st.form_submit_button("Save Student"):
-                    try:
-                        hashed_pass = make_hashes(s_pass)
-                        cursor.execute("INSERT INTO students VALUES (?,?,?,?,?,?,?,?,?,0)", 
-                                       (s_id, sid, s_name, s_class, s_roll, "", "", s_phone, total_fee))
-                        cursor.execute("INSERT INTO users VALUES (?,?,?,'Student',?)", 
-                                       (s_id, sid, hashed_pass, s_name))
-                        conn.commit()
-                        st.success("Student Added and Account Created!")
-                    except sqlite3.IntegrityError:
-                        st.error("Student ID Already Exists!")
 
-        elif choice == "Add Teacher":
-            st.subheader("➕ Add New Teacher")
+                if st.form_submit_button("Register Student"):
+                    full_name = f"{first_name} {last_name}".strip()
+                    auto_student_id = f"{first_name}{sr_no}"
+                    dob_str = str(dob)
+
+                    if not first_name or not sr_no:
+                        st.error("First Name and SR Number are mandatory!")
+                    else:
+                        try:
+                            hashed_pass = make_hashes(dob_str)
+                            cursor.execute("INSERT INTO students VALUES (?,?,?,?,?,?,?,?,?,?,0)", 
+                                           (auto_student_id, sid, sr_no, full_name, s_class, s_roll, dob_str, "", s_phone, total_fee))
+                            cursor.execute("INSERT INTO users VALUES (?,?,?,'Student',?)", 
+                                           (auto_student_id, sid, hashed_pass, full_name))
+                            conn.commit()
+                            st.success(f"✅ Student Added! Login ID: `{auto_student_id}` | Default Password: `{dob_str}`")
+                        except sqlite3.IntegrityError:
+                            st.error("Student ID/SR Number already exists!")
+
+        elif choice == "Add Teacher / Staff":
+            st.subheader("➕ Add Teacher or Staff Member")
             with st.form("add_teacher"):
-                t_id = st.text_input("Teacher ID (Login ID)")
-                t_pass = st.text_input("Assign Password")
-                t_name = st.text_input("Teacher Name")
-                t_class = st.text_input("Assigned Class Teacher Of")
+                t_id = st.text_input("Teacher/Staff ID")
+                t_name = st.text_input("Full Name")
+                t_role = st.selectbox("Role Type", ["Teacher", "Accountant", "Staff"])
+                t_pass = st.text_input("Assign Password", type="password")
+                t_class = st.text_input("Class Teacher Of (If Applicable)")
                 t_phone = st.text_input("Phone Number")
-                if st.form_submit_button("Save Teacher"):
-                    try:
-                        hashed_pass = make_hashes(t_pass)
-                        cursor.execute("INSERT INTO teachers VALUES (?,?,?,?,?,?)", 
-                                       (t_id, sid, t_name, t_class, "", t_phone))
-                        cursor.execute("INSERT INTO users VALUES (?,?,?,'Teacher',?)", 
-                                       (t_id, sid, hashed_pass, t_name))
-                        conn.commit()
-                        st.success("Teacher Account Created!")
-                    except sqlite3.IntegrityError:
-                        st.error("Teacher ID Already Exists!")
 
-        elif choice == "View All Records":
-            st.subheader("📋 Students Directory")
+                if st.form_submit_button("Save Staff Account"):
+                    is_valid, msg = is_strong_password(t_pass)
+                    if not is_valid:
+                        st.error(msg)
+                    else:
+                        try:
+                            hashed = make_hashes(t_pass)
+                            cursor.execute("INSERT INTO teachers VALUES (?,?,?,?,?,?,?)", (t_id, sid, t_name, t_role, t_class, "", t_phone))
+                            cursor.execute("INSERT INTO users VALUES (?,?,?,?,?)", (t_id, sid, hashed, t_role, t_name))
+                            conn.commit()
+                            st.success(f"{t_role} Account Created!")
+                        except sqlite3.IntegrityError:
+                            st.error("ID Already Exists!")
+
+        elif choice == "Update School Data":
+            st.subheader("📋 Update / View Student Directory")
             st.dataframe(pd.read_sql_query(f"SELECT * FROM students WHERE school_id = '{sid}'", conn), use_container_width=True)
 
-    # 3. TEACHER PANEL
-    elif role == "Teacher":
-        st.title("👩‍🏫 Teacher Side Dashboard")
-        menu = ["Mark Attendance", "Upload Exam / Test Marks"]
-        choice = st.sidebar.radio("Navigation", menu)
-
-        if choice == "Mark Attendance":
-            st.subheader("📝 Daily Attendance Marker")
-            s_df = pd.read_sql_query(f"SELECT student_id, name, student_class FROM students WHERE school_id = '{sid}'", conn)
-            if not s_df.empty:
-                s_id = st.selectbox("Select Student", s_df['student_id'].tolist())
+        elif choice == "Mark Daily Attendance":
+            st.subheader("📝 Attendance Marker (Staff & Students)")
+            users_df = pd.read_sql_query(f"SELECT user_id, name, role FROM users WHERE school_id = '{sid}'", conn)
+            if not users_df.empty:
+                selected_person = st.selectbox("Select Person", users_df['user_id'] + " - " + users_df['name'] + " (" + users_df['role'] + ")")
+                p_id = selected_person.split(" - ")[0]
+                p_role = users_df[users_df['user_id'] == p_id]['role'].values[0]
                 status = st.radio("Status", ["Present", "Absent"])
                 date_str = str(datetime.now().date())
+                
                 if st.button("Mark Attendance"):
-                    cursor.execute("INSERT INTO attendance VALUES (?, ?, ?, ?)", (s_id, sid, date_str, status))
+                    cursor.execute("INSERT INTO attendance VALUES (?, ?, ?, ?, ?)", (p_id, sid, p_role, date_str, status))
                     conn.commit()
                     st.success(f"Attendance marked as {status} for {date_str}!")
 
-        elif choice == "Upload Exam / Test Marks":
+    # 3. TEACHER DASHBOARD
+    elif role == "Teacher":
+        st.title("👩‍🏫 Teacher Dashboard")
+        menu = ["Mark Student/Staff Attendance", "Upload Exam Marks"]
+        choice = st.sidebar.radio("Navigation", menu)
+
+        if choice == "Mark Student/Staff Attendance":
+            st.subheader("📝 Daily Attendance Marker")
+            s_df = pd.read_sql_query(f"SELECT user_id, name, role FROM users WHERE school_id = '{sid}'", conn)
+            if not s_df.empty:
+                person = st.selectbox("Select Person", s_df['user_id'] + " - " + s_df['name'] + " (" + s_df['role'] + ")")
+                p_id = person.split(" - ")[0]
+                p_role = s_df[s_df['user_id'] == p_id]['role'].values[0]
+                status = st.radio("Status", ["Present", "Absent"])
+                date_str = str(datetime.now().date())
+                
+                if st.button("Submit Attendance"):
+                    cursor.execute("INSERT INTO attendance VALUES (?, ?, ?, ?, ?)", (p_id, sid, p_role, date_str, status))
+                    conn.commit()
+                    st.success(f"Attendance marked as {status}!")
+
+        elif choice == "Upload Exam Marks":
             st.subheader("🎯 Upload Student Marks")
             s_df = pd.read_sql_query(f"SELECT student_id, name FROM students WHERE school_id = '{sid}'", conn)
             if not s_df.empty:
@@ -337,7 +402,7 @@ else:
         st.title("🎓 Student Portal")
         u_id = st.session_state['user_id']
         
-        tab1, tab2, tab3 = st.tabs(["👤 Profile & Details", "📊 Marks & Performance", "📅 Attendance Report"])
+        tab1, tab2, tab3 = st.tabs(["👤 Profile & Details", "📊 Marks & Performance", "📅 Attendance History"])
         
         with tab1:
             st.subheader("Student Profile")
@@ -345,12 +410,10 @@ else:
             st.dataframe(profile, use_container_width=True)
             
         with tab2:
-            st.subheader("Exam & Test Marks")
+            st.subheader("Exam Marks")
             marks = pd.read_sql_query(f"SELECT exam_type, subject, marks_obtained, max_marks FROM marks WHERE student_id = '{u_id}'", conn)
             st.dataframe(marks, use_container_width=True)
 
         with tab3:
             st.subheader("Attendance History")
-            att = pd.read_sql_query(f"SELECT date, status FROM attendance WHERE student_id = '{u_id}'", conn)
-            st.dataframe(att, use_container_width=True)
-    
+            att = pd.read_sql_query(f"SELECT date, status FROM attendance WH
