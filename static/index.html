@@ -1,0 +1,833 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="A central platform for managing schools, students, teachers and academic activities.">
+
+    <title>SchoolDesk | School Management</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Main application layout -->
+    <div class="app-layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+
+            <a href="#" class="brand">
+                <span class="brand-mark">S</span>
+
+                <span class="brand-copy">
+                    <strong>SchoolDesk</strong>
+                    <small>Management Suite</small>
+                </span>
+            </a>
+
+            <div class="workspace-label">WORKSPACE</div>
+
+            <div class="workspace-switcher">
+                <span class="workspace-icon">ED</span>
+
+                <span class="workspace-info">
+                    <strong>Education Group</strong>
+                    <small>Platform workspace</small>
+                </span>
+
+                <span class="switch-arrow">⌄</span>
+            </div>
+
+            <nav class="main-navigation" aria-label="Main navigation">
+
+                <div class="nav-heading">OVERVIEW</div>
+
+                <a href="#dashboard" class="nav-link active">
+                    <span class="nav-icon">▦</span>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="#schools" class="nav-link">
+                    <span class="nav-icon">▤</span>
+                    <span>Schools</span>
+                    <span class="nav-count">12</span>
+                </a>
+
+                <a href="#analytics" class="nav-link">
+                    <span class="nav-icon">▥</span>
+                    <span>Analytics</span>
+                </a>
+
+                <div class="nav-heading">SCHOOL MANAGEMENT</div>
+
+                <a href="#students" class="nav-link">
+                    <span class="nav-icon">♙</span>
+                    <span>Students</span>
+                </a>
+
+                <a href="#teachers" class="nav-link">
+                    <span class="nav-icon">♧</span>
+                    <span>Teachers & Staff</span>
+                </a>
+
+                <a href="#academics" class="nav-link">
+                    <span class="nav-icon">▣</span>
+                    <span>Academics</span>
+                </a>
+
+                <a href="#attendance" class="nav-link">
+                    <span class="nav-icon">✓</span>
+                    <span>Attendance</span>
+                </a>
+
+                <a href="#examinations" class="nav-link">
+                    <span class="nav-icon">▤</span>
+                    <span>Examinations</span>
+                </a>
+
+                <a href="#fees" class="nav-link">
+                    <span class="nav-icon">₹</span>
+                    <span>Fees & Payments</span>
+                </a>
+
+                <div class="nav-heading">SCHOOL ACTIVITIES</div>
+
+                <a href="#notices" class="nav-link">
+                    <span class="nav-icon">♧</span>
+                    <span>Notice Board</span>
+                </a>
+
+                <a href="#events" class="nav-link">
+                    <span class="nav-icon">▦</span>
+                    <span>Events Calendar</span>
+                </a>
+
+                <a href="#gallery" class="nav-link">
+                    <span class="nav-icon">▧</span>
+                    <span>Gallery</span>
+                </a>
+
+                <a href="#library" class="nav-link">
+                    <span class="nav-icon">▤</span>
+                    <span>Library</span>
+                </a>
+
+                <a href="#transport" class="nav-link">
+                    <span class="nav-icon">▱</span>
+                    <span>Transport</span>
+                </a>
+
+                <div class="nav-heading">PLATFORM</div>
+
+                <a href="#subscriptions" class="nav-link">
+                    <span class="nav-icon">◇</span>
+                    <span>Subscriptions</span>
+                </a>
+
+                <a href="#reports" class="nav-link">
+                    <span class="nav-icon">▥</span>
+                    <span>Reports</span>
+                </a>
+
+                <a href="#settings" class="nav-link">
+                    <span class="nav-icon">⚙</span>
+                    <span>Settings</span>
+                </a>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+
+                <div class="help-card">
+                    <div class="help-icon">?</div>
+
+                    <strong>Need a hand?</strong>
+
+                    <p>Visit the help centre for guidance.</p>
+
+                    <a href="#help">Open help centre →</a>
+                </div>
+
+                <div class="sidebar-user">
+                    <div class="avatar avatar-purple">AD</div>
+
+                    <div class="sidebar-user-info">
+                        <strong>Platform Admin</strong>
+                        <small>Super Administrator</small>
+                    </div>
+
+                    <button class="more-button"
+                            type="button"
+                            aria-label="Account options">•••</button>
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main content area -->
+        <main class="main-content" id="dashboard">
+
+            <!-- Top header -->
+            <header class="topbar">
+
+                <div class="topbar-left">
+
+                    <button class="icon-button menu-toggle"
+                            id="menuToggle"
+                            type="button"
+                            aria-label="Toggle navigation"
+                            aria-expanded="false">☰</button>
+
+                    <div class="breadcrumb">
+                        <span>Workspace</span>
+                        <span class="breadcrumb-divider">/</span>
+                        <strong>Dashboard</strong>
+                    </div>
+
+                </div>
+
+                <div class="topbar-right">
+
+                    <label class="search-box">
+                        <span>⌕</span>
+
+                        <input type="search"
+                               id="globalSearch"
+                               placeholder="Search schools, students..."
+                               aria-label="Search platform">
+                    </label>
+
+                    <button class="icon-button notification-button"
+                            id="notificationButton"
+                            type="button"
+                            aria-label="Notifications">
+                        ♧
+                        <span class="notification-dot"></span>
+                    </button>
+
+                    <div class="topbar-profile">
+                        <div class="avatar avatar-purple">AD</div>
+
+                        <div class="profile-details">
+                            <strong>Platform Admin</strong>
+                            <small>Super Admin</small>
+                        </div>
+
+                        <span class="switch-arrow">⌄</span>
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- Dashboard page -->
+            <div class="page-content">
+
+                <section class="welcome-section">
+
+                    <div>
+                        <p class="eyebrow">PLATFORM OVERVIEW</p>
+
+                        <h1>Good morning, Admin <span>✦</span></h1>
+
+                        <p class="welcome-description">
+                            Here's what's happening across your school network.
+                        </p>
+                    </div>
+
+                    <div class="welcome-actions">
+
+                        <button class="button button-secondary"
+                                id="exportReport"
+                                type="button">
+                            <span>↓</span> Export report
+                        </button>
+
+                        <button class="button button-primary"
+                                id="addSchoolButton"
+                                type="button">
+                            <span>＋</span> Add a school
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+                <!-- Summary cards -->
+                <section class="stats-grid" aria-label="Platform statistics">
+
+                    <article class="stat-card">
+
+                        <div class="stat-top">
+                            <span class="stat-label">Total schools</span>
+                            <span class="stat-icon stat-icon-blue">▤</span>
+                        </div>
+
+                        <div class="stat-value" id="totalSchools">12</div>
+
+                        <div class="stat-footer">
+                            <span class="trend trend-up">↑ 2 this month</span>
+                            <span class="stat-note">vs last month</span>
+                        </div>
+
+                    </article>
+
+
+                    <article class="stat-card">
+
+                        <div class="stat-top">
+                            <span class="stat-label">Total students</span>
+                            <span class="stat-icon stat-icon-purple">♙</span>
+                        </div>
+
+                        <div class="stat-value" id="totalStudents">8,420</div>
+
+                        <div class="stat-footer">
+                            <span class="trend trend-up">↑ 5.2%</span>
+                            <span class="stat-note">vs last month</span>
+                        </div>
+
+                    </article>
+
+
+                    <article class="stat-card">
+
+                        <div class="stat-top">
+                            <span class="stat-label">Teachers & staff</span>
+                            <span class="stat-icon stat-icon-green">♧</span>
+                        </div>
+
+                        <div class="stat-value" id="totalTeachers">624</div>
+
+                        <div class="stat-footer">
+                            <span class="trend trend-up">↑ 3.1%</span>
+                            <span class="stat-note">vs last month</span>
+                        </div>
+
+                    </article>
+
+
+                    <article class="stat-card">
+
+                        <div class="stat-top">
+                            <span class="stat-label">Active subscriptions</span>
+                            <span class="stat-icon stat-icon-orange">◇</span>
+                        </div>
+
+                        <div class="stat-value" id="activeSubscriptions">10</div>
+
+                        <div class="stat-footer">
+                            <span class="stat-status">
+                                <span class="status-dot"></span> Running normally
+                            </span>
+                        </div>
+
+                    </article>
+
+                </section>
+
+
+                <!-- Main dashboard panels -->
+                <section class="dashboard-grid">
+
+                    <article class="panel school-panel" id="schools">
+
+                        <div class="panel-header">
+
+                            <div>
+                                <h2>Schools overview</h2>
+
+                                <p>
+                                    Keep track of schools on your platform.
+                                </p>
+                            </div>
+
+                            <a href="#all-schools" class="text-link">
+                                View all schools →
+                            </a>
+
+                        </div>
+
+                        <div class="school-filters">
+
+                            <label class="filter-search">
+                                <span>⌕</span>
+
+                                <input type="search"
+                                       id="schoolSearch"
+                                       placeholder="Search school name...">
+                            </label>
+
+                            <select id="schoolStatusFilter"
+                                    aria-label="Filter schools by status">
+                                <option value="all">All statuses</option>
+                                <option value="active">Active</option>
+                                <option value="pending">Pending</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+
+                        </div>
+
+                        <div class="table-wrapper">
+
+                            <table class="data-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>School</th>
+                                        <th>Students</th>
+                                        <th>Plan</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="schoolTableBody">
+                                  
+                                    <tr data-status="active">
+                                        <td>
+                                            <div class="school-cell">
+                                                <span class="school-logo school-logo-blue">DP</span>
+                                                <div>
+                                                    <strong>Delhi Public School</strong>
+                                                    <small>Pali, Rajasthan</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>1,240</td>
+                                        <td><span class="plan-label plan-standard">Standard</span></td>
+                                        <td><span class="status-badge status-active">Active</span></td>
+                                        <td>
+                                            <button class="row-action"
+                                                    type="button"
+                                                    aria-label="School options">•••</button>
+                                        </td>
+                                    </tr>
+
+                                    <tr data-status="active">
+                                        <td>
+                                            <div class="school-cell">
+                                                <span class="school-logo school-logo-purple">GV</span>
+                                                <div>
+                                                    <strong>Green Valley School</strong>
+                                                    <small>Jaipur, Rajasthan</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>865</td>
+                                        <td><span class="plan-label plan-premium">Premium</span></td>
+                                        <td><span class="status-badge status-active">Active</span></td>
+                                        <td>
+                                            <button class="row-action"
+                                                    type="button"
+                                                    aria-label="School options">•••</button>
+                                        </td>
+                                    </tr>
+
+                                    <tr data-status="pending">
+                                        <td>
+                                            <div class="school-cell">
+                                                <span class="school-logo school-logo-orange">SS</span>
+                                                <div>
+                                                    <strong>Sunrise Senior School</strong>
+                                                    <small>Jodhpur, Rajasthan</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>—</td>
+                                        <td><span class="plan-label plan-basic">Basic</span></td>
+                                        <td><span class="status-badge status-pending">Pending</span></td>
+                                        <td>
+                                            <button class="row-action"
+                                                    type="button"
+                                                    aria-label="School options">•••</button>
+                                        </td>
+                                    </tr>
+
+                                    <tr data-status="active">
+                                        <td>
+                                            <div class="school-cell">
+                                                <span class="school-logo school-logo-green">MP</span>
+                                                <div>
+                                                    <strong>Modern Public School</strong>
+                                                    <small>Barmer, Rajasthan</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>720</td>
+                                        <td><span class="plan-label plan-standard">Standard</span></td>
+                                        <td><span class="status-badge status-active">Active</span></td>
+                                        <td>
+                                            <button class="row-action"
+                                                    type="button"
+                                                    aria-label="School options">•••</button>
+                                        </td>
+                                    </tr>
+
+                                    <tr data-status="suspended">
+                                        <td>
+                                            <div class="school-cell">
+                                                <span class="school-logo school-logo-red">AS</span>
+                                                <div>
+                                                    <strong>Aravali School</strong>
+                                                    <small>Ajmer, Rajasthan</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>—</td>
+                                        <td><span class="plan-label plan-basic">Basic</span></td>
+                                        <td><span class="status-badge status-suspended">Suspended</span></td>
+                                        <td>
+                                            <button class="row-action"
+                                                    type="button"
+                                                    aria-label="School options">•••</button>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                        <div class="table-footer">
+                            <span>Showing sample school records</span>
+                            <a href="#all-schools" class="text-link">Manage schools →</a>
+                        </div>
+
+                    </article>
+
+
+                    <!-- Subscription summary -->
+                    <article class="panel subscription-panel" id="subscriptions">
+
+                        <div class="panel-header">
+                            <div>
+                                <h2>Subscription summary</h2>
+                                <p>Overview of school plans.</p>
+                            </div>
+
+                            <span class="panel-menu">•••</span>
+                        </div>
+
+                        <div class="subscription-total">
+                            <div>
+                                <span class="muted">Active plans</span>
+                                <h3>10 <span class="muted">/ 12 schools</span></h3>
+                            </div>
+
+                            <span class="subscription-symbol">◇</span>
+                        </div>
+
+                        <div class="progress-track">
+                            <span class="progress-fill" style="width: 83.33%"></span>
+                        </div>
+
+                        <div class="subscription-legend">
+                            <div>
+                                <span class="legend-dot legend-blue"></span>
+                                <span>Standard</span>
+                                <strong>6</strong>
+                            </div>
+
+                            <div>
+                                <span class="legend-dot legend-purple"></span>
+                                <span>Premium</span>
+                                <strong>3</strong>
+                            </div>
+
+                            <div>
+                                <span class="legend-dot legend-orange"></span>
+                                <span>Basic</span>
+                                <strong>1</strong>
+                            </div>
+                        </div>
+
+                        <a href="#plans" class="button button-secondary button-full">
+                            Manage subscription plans
+                        </a>
+
+                    </article>
+
+                </section>
+
+
+                <!-- Lower dashboard sections -->
+                <section class="lower-grid">
+
+                    <article class="panel activity-panel">
+
+                        <div class="panel-header">
+                            <div>
+                                <h2>Recent activity</h2>
+                                <p>Latest updates across the platform.</p>
+                            </div>
+
+                            <a href="#activity-log" class="text-link">
+                                View log →
+                            </a>
+                        </div>
+
+                        <div class="activity-list">
+
+                            <div class="activity-item">
+                                <span class="activity-icon activity-blue">＋</span>
+
+                                <div class="activity-copy">
+                                    <strong>New school registration</strong>
+                                    <p>Sunrise Senior School submitted a registration request.</p>
+                                    <small>Sample activity · Today</small>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <span class="activity-icon activity-green">✓</span>
+
+                                <div class="activity-copy">
+                                    <strong>School account activated</strong>
+                                    <p>Green Valley School is marked as active.</p>
+                                    <small>Sample activity · Yesterday</small>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <span class="activity-icon activity-purple">↻</span>
+
+                                <div class="activity-copy">
+                                    <strong>Subscription updated</strong>
+                                    <p>A school plan was updated by an administrator.</p>
+                                    <small>Sample activity · Recently</small>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="panel events-panel" id="events">
+
+                        <div class="panel-header">
+                            <div>
+                                <h2>Upcoming events</h2>
+                                <p>Dates to keep in mind.</p>
+                            </div>
+
+                            <a href="#calendar" class="text-link">Calendar →</a>
+                        </div>
+
+                        <div class="event-list">
+
+                            <div class="event-item">
+                                <div class="event-date">
+                                    <span>OCT</span>
+                                    <strong>15</strong>
+                                </div>
+
+                                <div class="event-copy">
+                                    <strong>School registration review</strong>
+                                    <p>Platform administration</p>
+                                </div>
+
+                                <span class="event-dot event-dot-blue"></span>
+                            </div>
+
+                            <div class="event-item">
+                                <div class="event-date">
+                                    <span>OCT</span>
+                                    <strong>18</strong>
+                                </div>
+
+                                <div class="event-copy">
+                                    <strong>Academic planning</strong>
+                                    <p>School coordinators</p>
+                                </div>
+
+                                <span class="event-dot event-dot-purple"></span>
+                            </div>
+
+                            <div class="event-item">
+                                <div class="event-date">
+                                    <span>OCT</span>
+                                    <strong>22</strong>
+                                </div>
+
+                                <div class="event-copy">
+                                    <strong>Monthly platform review</strong>
+                                    <p>Platform administration</p>
+                                </div>
+
+                                <span class="event-dot event-dot-orange"></span>
+                            </div>
+
+                        </div>
+
+                        <p class="demo-note">
+                            Example events only. Actual dates will come from the database.
+                        </p>
+
+                    </article>
+
+                </section>
+
+
+                <!-- Quick actions -->
+                <section class="panel quick-actions-panel">
+
+                    <div class="panel-header">
+                        <div>
+                            <h2>Quick actions</h2>
+                            <p>Shortcuts to common tasks.</p>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions-grid">
+
+                        <button class="quick-action"
+                                id="quickAddSchool"
+                                type="button">
+                            <span class="quick-action-icon action-blue">＋</span>
+                            <strong>Add a school</strong>
+                            <small>Register a new institution</small>
+                        </button>
+
+                        <a href="#reports" class="quick-action">
+                            <span class="quick-action-icon action-purple">▥</span>
+                            <strong>View reports</strong>
+                            <small>Review platform summaries</small>
+                        </a>
+
+                        <a href="#subscriptions" class="quick-action">
+                            <span class="quick-action-icon action-green">◇</span>
+                            <strong>Manage plans</strong>
+                            <small>Review school subscriptions</small>
+                        </a>
+
+                        <a href="#settings" class="quick-action">
+                            <span class="quick-action-icon action-orange">⚙</span>
+                            <strong>Platform settings</strong>
+                            <small>Configure platform options</small>
+                        </a>
+
+                    </div>
+
+                </section>
+
+
+                <!-- Add school dialog -->
+                <dialog class="school-dialog" id="schoolDialog">
+
+                    <div class="dialog-header">
+                        <div>
+                            <p class="eyebrow">SCHOOL MANAGEMENT</p>
+                            <h2>Add a school</h2>
+                            <p>Enter the institution's basic details.</p>
+                        </div>
+
+                        <button class="icon-button"
+                                id="closeSchoolDialog"
+                                type="button"
+                                aria-label="Close form">✕</button>
+                    </div>
+
+                    <form id="schoolForm">
+
+                        <label for="newSchoolName">School name</label>
+                        <input id="newSchoolName"
+                               name="school_name"
+                               type="text"
+                               maxlength="150"
+                               placeholder="Enter school name"
+                               required>
+
+                        <label for="newSchoolEmail">Official email</label>
+                        <input id="newSchoolEmail"
+                               name="school_email"
+                               type="email"
+                               maxlength="150"
+                               placeholder="school@example.com"
+                               required>
+
+                        <label for="newSchoolLocation">City and state</label>
+                        <input id="newSchoolLocation"
+                               name="school_location"
+                               type="text"
+                               maxlength="150"
+                               placeholder="e.g. Pali, Rajasthan"
+                               required>
+
+                        <label for="newSchoolPlan">Initial plan</label>
+                        <select id="newSchoolPlan" name="school_plan">
+                            <option value="basic">Basic</option>
+                            <option value="standard">Standard</option>
+                            <option value="premium">Premium</option>
+                        </select>
+
+                        <div class="dialog-actions">
+                            <button class="button button-secondary"
+                                    id="cancelSchoolDialog"
+                                    type="button">
+                                Cancel
+                            </button>
+
+                            <button class="button button-primary"
+                                    type="submit">
+                                Submit details
+                            </button>
+                        </div>
+
+                        <p class="demo-note">
+                            Frontend preview only. Connect the form to the
+                            secure backend before using real school data.
+                        </p>
+
+                    </form>
+
+                </dialog>
+
+
+                <!-- Footer -->
+                <footer class="app-footer">
+
+                    <p>
+                        <strong>SchoolDesk</strong>
+                        <span>·</span>
+                        School management, made simpler.
+                    </p>
+
+                    <div class="footer-links">
+                        <a href="#help">Help centre</a>
+                        <a href="#privacy">Privacy</a>
+                        <a href="#terms">Terms</a>
+                    </div>
+
+                    <p class="footer-version">Platform preview · Version 1.0</p>
+
+                </footer>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
+
+
+                  
